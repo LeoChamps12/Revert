@@ -1,0 +1,2476 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Revert — Logística Reversa</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --surface2: #1a1a26;
+    --border: #2a2a3d;
+    --accent: #5cffb4;
+    --accent2: #7b5cff;
+    --accent3: #ff5c8a;
+    --text: #e8e8f0;
+    --muted: #6e6e8a;
+    --success: #5cffb4;
+    --warning: #ffb85c;
+    --danger: #ff5c8a;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ─── NAV ─── */
+  #app-nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    gap: 0;
+    padding: 0;
+    background: rgba(10,10,15,0.95);
+    border-bottom: 1px solid var(--border);
+    backdrop-filter: blur(12px);
+    height: 56px;
+  }
+
+  .nav-logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 1.3rem;
+    color: var(--accent);
+    padding: 0 28px;
+    letter-spacing: -0.03em;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .nav-logo::before {
+    content: '';
+    width: 8px; height: 8px;
+    background: var(--accent);
+    border-radius: 50%;
+    box-shadow: 0 0 10px var(--accent);
+  }
+
+  .nav-tabs {
+    display: flex;
+    height: 100%;
+    flex: 1;
+    border-left: 1px solid var(--border);
+  }
+
+  .nav-tab {
+    padding: 0 24px;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--muted);
+    cursor: pointer;
+    border: none;
+    background: none;
+    border-right: 1px solid var(--border);
+    transition: all 0.2s;
+    letter-spacing: 0.01em;
+    position: relative;
+  }
+
+  .nav-tab:hover { color: var(--text); background: var(--surface); }
+
+  .nav-tab.active {
+    color: var(--accent);
+    background: rgba(92,255,180,0.06);
+  }
+
+  .nav-tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--accent);
+  }
+
+  .tab-icon { font-size: 1rem; }
+
+  /* ─── PAGES ─── */
+  .page {
+    display: none;
+    padding-top: 56px;
+    min-height: 100vh;
+  }
+  .page.active { display: block; }
+
+  /* ─── HERO (cliente) ─── */
+  .hero {
+    padding: 80px 48px 60px;
+    max-width: 960px;
+    margin: 0 auto;
+  }
+
+  .hero-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--accent);
+    background: rgba(92,255,180,0.1);
+    border: 1px solid rgba(92,255,180,0.2);
+    padding: 4px 12px;
+    border-radius: 100px;
+    margin-bottom: 24px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .hero h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(2.2rem, 5vw, 3.6rem);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.04em;
+    margin-bottom: 20px;
+    color: var(--text);
+  }
+
+  .hero h1 span { color: var(--accent); }
+
+  .hero p {
+    font-size: 1.05rem;
+    color: var(--muted);
+    max-width: 540px;
+    line-height: 1.7;
+    margin-bottom: 40px;
+  }
+
+  .hero-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+
+  /* ─── BUTTONS ─── */
+  .btn {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 500;
+    padding: 12px 24px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    letter-spacing: 0.01em;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: #0a0a0f;
+  }
+  .btn-primary:hover { background: #7affcc; transform: translateY(-1px); box-shadow: 0 8px 24px rgba(92,255,180,0.25); }
+
+  .btn-secondary {
+    background: var(--surface2);
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+  .btn-secondary:hover { background: var(--surface); border-color: var(--muted); }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--border);
+  }
+  .btn-ghost:hover { color: var(--text); border-color: var(--text); }
+
+  .btn-danger { background: rgba(255,92,138,0.15); color: var(--danger); border: 1px solid rgba(255,92,138,0.3); }
+  .btn-danger:hover { background: rgba(255,92,138,0.25); }
+
+  .btn-sm { padding: 7px 14px; font-size: 0.8rem; }
+
+  /* ─── CARDS ─── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+  }
+
+  .card-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 6px;
+    letter-spacing: -0.02em;
+  }
+
+  .card-sub {
+    font-size: 0.8rem;
+    color: var(--muted);
+    margin-bottom: 20px;
+  }
+
+  /* ─── SECTION LAYOUT ─── */
+  .section {
+    padding: 0 48px 60px;
+    max-width: 960px;
+    margin: 0 auto;
+  }
+
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.4rem;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    margin-bottom: 4px;
+  }
+
+  .section-sub {
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-bottom: 28px;
+  }
+
+  /* ─── FORM ─── */
+  .form-group {
+    margin-bottom: 16px;
+  }
+
+  label {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--muted);
+    margin-bottom: 6px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  input, select, textarea {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  input:focus, select:focus, textarea:focus {
+    border-color: var(--accent2);
+    box-shadow: 0 0 0 3px rgba(123,92,255,0.12);
+  }
+
+  select option { background: var(--surface2); }
+
+  textarea { resize: vertical; min-height: 80px; }
+
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+  /* ─── STATUS BADGE ─── */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 100px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .badge::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+
+  .badge-pending { background: rgba(255,184,92,0.12); color: var(--warning); }
+  .badge-collected { background: rgba(92,255,180,0.1); color: var(--success); }
+  .badge-processing { background: rgba(123,92,255,0.12); color: var(--accent2); }
+  .badge-refunded { background: rgba(92,255,180,0.15); color: var(--success); border: 1px solid rgba(92,255,180,0.2); }
+  .badge-rejected { background: rgba(255,92,138,0.1); color: var(--danger); }
+
+  /* ─── TABLE ─── */
+  .table-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+  }
+
+  th {
+    padding: 12px 16px;
+    text-align: left;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+  }
+
+  td {
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(42,42,61,0.5);
+    color: var(--text);
+    vertical-align: middle;
+  }
+
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(255,255,255,0.02); }
+
+  .code-cell {
+    font-family: 'Courier New', monospace;
+    font-size: 0.8rem;
+    color: var(--accent);
+    background: rgba(92,255,180,0.06);
+    padding: 3px 8px;
+    border-radius: 4px;
+    border: 1px solid rgba(92,255,180,0.15);
+  }
+
+  /* ─── GRID ─── */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; }
+
+  /* ─── STAT CARD ─── */
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 24px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+  }
+
+  .stat-card.green::before { background: linear-gradient(90deg, var(--accent), transparent); }
+  .stat-card.purple::before { background: linear-gradient(90deg, var(--accent2), transparent); }
+  .stat-card.orange::before { background: linear-gradient(90deg, var(--warning), transparent); }
+  .stat-card.pink::before { background: linear-gradient(90deg, var(--accent3), transparent); }
+
+  .stat-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .stat-value {
+    font-family: 'Syne', sans-serif;
+    font-size: 2rem;
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+
+  .stat-delta {
+    font-size: 0.78rem;
+    color: var(--muted);
+  }
+
+  .stat-delta.up { color: var(--success); }
+  .stat-delta.down { color: var(--danger); }
+
+  /* ─── PROGRESS BAR ─── */
+  .progress-bar {
+    height: 4px;
+    background: var(--surface2);
+    border-radius: 100px;
+    overflow: hidden;
+    margin-top: 12px;
+  }
+
+  .progress-fill {
+    height: 100%;
+    border-radius: 100px;
+    transition: width 0.8s ease;
+  }
+
+  /* ─── TIMELINE ─── */
+  .timeline { display: flex; flex-direction: column; gap: 0; }
+
+  .timeline-item {
+    display: flex;
+    gap: 16px;
+    padding-bottom: 20px;
+    position: relative;
+  }
+
+  .timeline-item:last-child { padding-bottom: 0; }
+
+  .timeline-dot {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    background: var(--surface2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1;
+  }
+
+  .timeline-dot.done {
+    background: rgba(92,255,180,0.1);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .timeline-dot.active {
+    background: rgba(123,92,255,0.15);
+    border-color: var(--accent2);
+    color: var(--accent2);
+    box-shadow: 0 0 12px rgba(123,92,255,0.3);
+  }
+
+  .timeline-item::before {
+    content: '';
+    position: absolute;
+    left: 13px;
+    top: 28px;
+    bottom: 0;
+    width: 2px;
+    background: var(--border);
+  }
+
+  .timeline-item:last-child::before { display: none; }
+
+  .timeline-content { flex: 1; padding-top: 4px; }
+
+  .timeline-title {
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin-bottom: 2px;
+  }
+
+  .timeline-meta {
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+
+  /* ─── MODAL ─── */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(4px);
+  }
+
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    width: 90%;
+    max-width: 520px;
+    padding: 32px;
+    position: relative;
+    animation: slideUp 0.25s ease;
+  }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .modal-close {
+    position: absolute;
+    top: 16px; right: 16px;
+    background: none;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 1.1rem;
+    padding: 4px;
+    transition: color 0.2s;
+  }
+
+  .modal-close:hover { color: var(--text); }
+
+  .modal-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.2rem;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    margin-bottom: 4px;
+  }
+
+  .modal-sub {
+    font-size: 0.82rem;
+    color: var(--muted);
+    margin-bottom: 24px;
+  }
+
+  /* ─── SUCCESS SCREEN ─── */
+  .success-screen {
+    text-align: center;
+    padding: 20px 0;
+  }
+
+  .success-icon {
+    width: 64px; height: 64px;
+    background: rgba(92,255,180,0.1);
+    border: 2px solid var(--accent);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+    font-size: 1.6rem;
+  }
+
+  .success-code {
+    font-family: 'Syne', monospace;
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--accent);
+    letter-spacing: 0.1em;
+    background: rgba(92,255,180,0.06);
+    border: 1px solid rgba(92,255,180,0.2);
+    padding: 12px 24px;
+    border-radius: 8px;
+    margin: 16px 0;
+  }
+
+  /* ─── CHART ─── */
+  .chart-bar-wrap {
+    display: flex;
+    align-items: flex-end;
+    gap: 6px;
+    height: 80px;
+    padding: 0;
+  }
+
+  .chart-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    height: 100%;
+    justify-content: flex-end;
+  }
+
+  .chart-bar {
+    width: 100%;
+    border-radius: 4px 4px 0 0;
+    min-height: 4px;
+    transition: height 0.5s ease;
+  }
+
+  .chart-label {
+    font-size: 0.65rem;
+    color: var(--muted);
+    text-align: center;
+  }
+
+  /* ─── PIX ─── */
+  .pix-display {
+    background: linear-gradient(135deg, #12121a 0%, #1a1a2e 100%);
+    border: 1px solid rgba(92,255,180,0.2);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+  }
+
+  .pix-amount {
+    font-family: 'Syne', sans-serif;
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: var(--accent);
+    letter-spacing: -0.04em;
+  }
+
+  .pix-key {
+    font-size: 0.82rem;
+    color: var(--muted);
+    margin-top: 8px;
+    font-family: monospace;
+  }
+
+  /* ─── NOTICE ─── */
+  .notice {
+    background: rgba(123,92,255,0.08);
+    border: 1px solid rgba(123,92,255,0.2);
+    border-radius: 8px;
+    padding: 14px 16px;
+    font-size: 0.82rem;
+    color: var(--muted);
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  .notice-icon { font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
+
+  /* ─── OPERATOR PANEL ─── */
+  .op-sidebar {
+    width: 240px;
+    flex-shrink: 0;
+  }
+
+  .op-layout {
+    display: flex;
+    gap: 24px;
+    padding: 32px 48px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .op-main { flex: 1; min-width: 0; }
+
+  .sidebar-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.15s;
+    margin-bottom: 2px;
+  }
+
+  .sidebar-item:hover { background: var(--surface2); color: var(--text); }
+  .sidebar-item.active { background: rgba(92,255,180,0.08); color: var(--accent); }
+  .sidebar-item .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+
+  /* ─── DIVIDER ─── */
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 24px 0;
+  }
+
+  /* ─── PHOTO UPLOAD ─── */
+  .photo-drop {
+    border: 2px dashed var(--border);
+    border-radius: 8px;
+    padding: 32px;
+    text-align: center;
+    transition: border-color 0.2s;
+    cursor: pointer;
+  }
+
+  .photo-drop:hover { border-color: var(--accent2); }
+
+  .photo-drop-icon { font-size: 2rem; margin-bottom: 8px; opacity: 0.5; }
+
+  /* ─── SCROLLBAR ─── */
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 700px) {
+    .hero { padding: 48px 24px 40px; }
+    .section { padding: 0 24px 48px; }
+    .form-row { grid-template-columns: 1fr; }
+    .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+    .op-layout { flex-direction: column; padding: 24px; }
+    .op-sidebar { width: 100%; }
+    .nav-tab span { display: none; }
+    .nav-tab { padding: 0 16px; }
+  }
+
+  /* ─── ANIMATE ─── */
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  .pulse { animation: pulse 2s infinite; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .fade-in { animation: fadeIn 0.4s ease both; }
+
+  /* ─── TABS INNER ─── */
+  .inner-tabs {
+    display: flex;
+    gap: 0;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 3px;
+    width: fit-content;
+    margin-bottom: 24px;
+    background: var(--surface2);
+  }
+
+  .inner-tab {
+    padding: 6px 16px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    border-radius: 5px;
+    cursor: pointer;
+    color: var(--muted);
+    border: none;
+    background: none;
+    transition: all 0.15s;
+  }
+
+  .inner-tab.active { background: var(--surface); color: var(--text); }
+
+  /* ─── TAG ─── */
+  .tag {
+    font-size: 0.72rem;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 500;
+  }
+
+  .tag-green { background: rgba(92,255,180,0.1); color: var(--accent); }
+  .tag-purple { background: rgba(123,92,255,0.1); color: var(--accent2); }
+
+  /* ─── STEPS ─── */
+  .steps {
+    display: flex;
+    gap: 0;
+    margin-bottom: 32px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .step {
+    flex: 1;
+    padding: 12px 16px;
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: var(--muted);
+    text-align: center;
+    border-right: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    background: var(--surface);
+  }
+
+  .step:last-child { border-right: none; }
+
+  .step.done { color: var(--accent); background: rgba(92,255,180,0.04); }
+  .step.active { color: var(--text); background: var(--surface2); }
+
+  .step-num {
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    background: var(--border);
+    font-size: 0.65rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .step.done .step-num { background: rgba(92,255,180,0.2); color: var(--accent); }
+  .step.active .step-num { background: var(--accent2); color: #fff; }
+
+</style>
+</head>
+<body>
+
+<!-- ─── NAV ─── -->
+<nav id="app-nav">
+  <div class="nav-logo">Revert.</div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showPage('client')">
+      <span class="tab-icon">📦</span>
+      <span>Fazer Devolução</span>
+    </button>
+    <button class="nav-tab" onclick="showPage('track')">
+      <span class="tab-icon">🔍</span>
+      <span>Rastrear</span>
+    </button>
+    <button class="nav-tab" onclick="showPage('operator')">
+      <span class="tab-icon">⚙️</span>
+      <span>Painel Revert</span>
+    </button>
+    <button class="nav-tab" onclick="showPage('partner')">
+      <span class="tab-icon">🏪</span>
+      <span>Ponto Parceiro</span>
+    </button>
+    <button class="nav-tab" onclick="showPage('dashboard')">
+      <span class="tab-icon">📊</span>
+      <span>Dashboard</span>
+    </button>
+  </div>
+</nav>
+
+<!-- ═══════════════════════════════════
+     PAGE: CLIENT — FAZER DEVOLUÇÃO
+═══════════════════════════════════ -->
+<div id="page-client" class="page active">
+  <div class="hero">
+    <div class="hero-tag">✦ Logística Reversa</div>
+    <h1>Devolver nunca<br>foi tão <span>simples.</span></h1>
+    <p>Sem reembalagem. Sem fila nos Correios. Leve ao ponto mais próximo e receba seu reembolso via PIX em minutos.</p>
+    <div class="hero-actions">
+      <button class="btn btn-primary" onclick="openModal('modal-request')">Solicitar devolução</button>
+      <button class="btn btn-secondary" onclick="showPage('track')">Rastrear meu pedido</button>
+    </div>
+  </div>
+
+  <div class="section">
+    <!-- COMO FUNCIONA -->
+    <div class="section-title">Como funciona</div>
+    <div class="section-sub">4 passos, sem complicação</div>
+
+    <div class="grid-4" style="margin-bottom: 48px;">
+      <div class="card">
+        <div style="font-size: 1.6rem; margin-bottom: 12px;">📝</div>
+        <div class="card-title">1. Solicite</div>
+        <div style="font-size: 0.82rem; color: var(--muted); line-height: 1.6;">Preencha o formulário com os dados do pedido e o motivo da devolução.</div>
+      </div>
+      <div class="card">
+        <div style="font-size: 1.6rem; margin-bottom: 12px;">📍</div>
+        <div class="card-title">2. Ponto parceiro</div>
+        <div style="font-size: 0.82rem; color: var(--muted); line-height: 1.6;">Leve o produto (sem reembalar) à farmácia ou mercado mais próximo.</div>
+      </div>
+      <div class="card">
+        <div style="font-size: 1.6rem; margin-bottom: 12px;">📸</div>
+        <div class="card-title">3. Registro</div>
+        <div style="font-size: 0.82rem; color: var(--muted); line-height: 1.6;">O atendente fotografa o produto com seu código único de devolução.</div>
+      </div>
+      <div class="card">
+        <div style="font-size: 1.6rem; margin-bottom: 12px;">⚡</div>
+        <div class="card-title">4. PIX na hora</div>
+        <div style="font-size: 0.82rem; color: var(--muted); line-height: 1.6;">Reembolso enviado via PIX em até 20 segundos após a validação.</div>
+      </div>
+    </div>
+
+    <!-- PONTOS PARCEIROS -->
+    <div class="section-title">Pontos parceiros em Joinville</div>
+    <div class="section-sub">Escolha o ponto mais conveniente para você</div>
+
+    <div class="grid-3" style="margin-bottom: 48px;">
+      <div class="card" style="display: flex; gap: 16px; align-items: flex-start; padding: 20px;">
+        <div style="font-size: 1.4rem; flex-shrink: 0;">💊</div>
+        <div>
+          <div style="font-weight: 600; font-size: 0.9rem; margin-bottom: 4px;">Farmácia Central</div>
+          <div style="font-size: 0.78rem; color: var(--muted); line-height: 1.5;">Rua Nove de Março, 145<br>Seg–Sáb 08h–22h, Dom 09h–20h</div>
+          <div style="margin-top: 8px;"><span class="badge badge-collected">Disponível</span></div>
+        </div>
+      </div>
+      <div class="card" style="display: flex; gap: 16px; align-items: flex-start; padding: 20px;">
+        <div style="font-size: 1.4rem; flex-shrink: 0;">🛒</div>
+        <div>
+          <div style="font-weight: 600; font-size: 0.9rem; margin-bottom: 4px;">Mercado BomPreço</div>
+          <div style="font-size: 0.78rem; color: var(--muted); line-height: 1.5;">Av. Santos Dumont, 890<br>Todos os dias 07h–23h</div>
+          <div style="margin-top: 8px;"><span class="badge badge-collected">Disponível</span></div>
+        </div>
+      </div>
+      <div class="card" style="display: flex; gap: 16px; align-items: flex-start; padding: 20px;">
+        <div style="font-size: 1.4rem; flex-shrink: 0;">💊</div>
+        <div>
+          <div style="font-weight: 600; font-size: 0.9rem; margin-bottom: 4px;">Drogaria NovaMed</div>
+          <div style="font-size: 0.78rem; color: var(--muted); line-height: 1.5;">Rua Ministro Calógeras, 22<br>Seg–Sex 08h–20h, Sáb 08h–14h</div>
+          <div style="margin-top: 8px;"><span class="badge badge-pending">Limitado</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FAQ -->
+    <div class="section-title">Dúvidas frequentes</div>
+    <div class="section-sub">Tudo que você precisa saber</div>
+
+    <div style="display: flex; flex-direction: column; gap: 8px;">
+      <div class="card" style="padding: 16px 20px;">
+        <div style="font-weight: 500; font-size: 0.9rem; margin-bottom: 6px;">Preciso embalar o produto?</div>
+        <div style="font-size: 0.82rem; color: var(--muted);">Não. Leve o produto como está. O registro fotográfico documenta o estado antes da coleta.</div>
+      </div>
+      <div class="card" style="padding: 16px 20px;">
+        <div style="font-weight: 500; font-size: 0.9rem; margin-bottom: 6px;">Em quanto tempo recebo o PIX?</div>
+        <div style="font-size: 0.82rem; color: var(--muted);">O reembolso é enviado em até 20 segundos após validação das fotos pela equipe Revert, em até 48h úteis.</div>
+      </div>
+      <div class="card" style="padding: 16px 20px;">
+        <div style="font-weight: 500; font-size: 0.9rem; margin-bottom: 6px;">Qual o prazo máximo para solicitar devolução?</div>
+        <div style="font-size: 0.82rem; color: var(--muted);">O prazo é definido pelo lojista, geralmente 7 a 30 dias após o recebimento do produto.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════
+     PAGE: TRACK
+═══════════════════════════════════ -->
+<div id="page-track" class="page">
+  <div class="hero" style="padding-bottom: 40px;">
+    <div class="hero-tag">🔍 Rastreamento</div>
+    <h1>Acompanhe sua<br><span>devolução</span></h1>
+    <p>Insira o código recebido por WhatsApp para ver o status em tempo real.</p>
+  </div>
+
+  <div class="section">
+    <div class="card" style="max-width: 480px; margin-bottom: 32px;">
+      <div class="card-title">Buscar devolução</div>
+      <div class="card-sub">Código no formato RVT-XXXXX</div>
+      <div style="display: flex; gap: 10px;">
+        <input type="text" id="track-input" placeholder="Ex: RVT-AB12C" style="font-family: monospace; letter-spacing: 0.05em;">
+        <button class="btn btn-primary" onclick="trackOrder()" style="flex-shrink: 0;">Buscar</button>
+      </div>
+    </div>
+
+    <div id="track-result" style="display: none; max-width: 680px;" class="fade-in">
+      <!-- filled by JS -->
+    </div>
+
+    <!-- Demo devoluções -->
+    <div class="section-title" style="margin-top: 16px;">Minhas devoluções</div>
+    <div class="section-sub">Devoluções vinculadas ao seu CPF/e-mail</div>
+
+    <div id="my-returns" style="display: flex; flex-direction: column; gap: 10px;">
+      <!-- filled by JS -->
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════
+     PAGE: OPERATOR
+═══════════════════════════════════ -->
+<div id="page-operator" class="page">
+  <div class="op-layout">
+    <div class="op-sidebar">
+      <div style="font-size: 0.7rem; font-weight: 600; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 12px; padding: 0 14px;">Gestão</div>
+      <div class="sidebar-item active" onclick="setOpView('returns')"><span class="dot"></span> Devoluções</div>
+      <div class="sidebar-item" onclick="setOpView('validate')"><span class="dot"></span> Validação de Fotos</div>
+      <div class="sidebar-item" onclick="setOpView('pix')"><span class="dot"></span> Emitir PIX</div>
+      <div class="sidebar-item" onclick="setOpView('partners')"><span class="dot"></span> Pontos Parceiros</div>
+
+      <div style="font-size: 0.7rem; font-weight: 600; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin: 20px 0 12px; padding: 0 14px;">Lojistas</div>
+      <div class="sidebar-item" onclick="setOpView('stores')"><span class="dot"></span> Lojistas Cadastrados</div>
+      <div class="sidebar-item" onclick="setOpView('reports')"><span class="dot"></span> Relatórios</div>
+
+      <div class="divider"></div>
+      <div style="padding: 0 14px;">
+        <div style="font-size: 0.75rem; color: var(--muted); margin-bottom: 4px;">SOM Atual</div>
+        <div style="font-family: 'Syne', sans-serif; font-size: 1.4rem; font-weight: 800; color: var(--accent);">R$ 7.500</div>
+        <div style="font-size: 0.72rem; color: var(--muted);">3 lojistas ativos</div>
+        <div class="progress-bar" style="margin-top: 8px;">
+          <div class="progress-fill" style="width: 25%; background: var(--accent);"></div>
+        </div>
+        <div style="font-size: 0.7rem; color: var(--muted); margin-top: 4px;">Meta: R$ 30.000/mês</div>
+      </div>
+    </div>
+
+    <div class="op-main">
+      <!-- VIEW: RETURNS -->
+      <div id="op-view-returns">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px;">
+          <div>
+            <div class="section-title">Devoluções ativas</div>
+            <div class="section-sub" style="margin-bottom: 0;">Gerencie todas as devoluções em andamento</div>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="openModal('modal-add-return')">+ Nova devolução</button>
+        </div>
+
+        <div class="inner-tabs">
+          <button class="inner-tab active" onclick="filterReturns('all', this)">Todas</button>
+          <button class="inner-tab" onclick="filterReturns('pending', this)">Pendente</button>
+          <button class="inner-tab" onclick="filterReturns('collected', this)">Coletada</button>
+          <button class="inner-tab" onclick="filterReturns('processing', this)">Validando</button>
+          <button class="inner-tab" onclick="filterReturns('refunded', this)">Reembolsada</button>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Código</th>
+                <th>Consumidor</th>
+                <th>Lojista</th>
+                <th>Produto</th>
+                <th>Valor</th>
+                <th>Status</th>
+                <th>Data</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="returns-table-body">
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- VIEW: VALIDATE -->
+      <div id="op-view-validate" style="display: none;">
+        <div class="section-title" style="margin-bottom: 4px;">Validação de Fotos</div>
+        <div class="section-sub">Revise as fotos enviadas pelos pontos parceiros</div>
+
+        <div id="validate-list">
+          <!-- filled by JS -->
+        </div>
+      </div>
+
+      <!-- VIEW: PIX -->
+      <div id="op-view-pix" style="display: none;">
+        <div class="section-title" style="margin-bottom: 4px;">Emitir PIX</div>
+        <div class="section-sub">Processe reembolsos pendentes de aprovação</div>
+
+        <div id="pix-list">
+          <!-- filled by JS -->
+        </div>
+      </div>
+
+      <!-- VIEW: STORES -->
+      <div id="op-view-stores" style="display: none;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px;">
+          <div>
+            <div class="section-title">Lojistas cadastrados</div>
+            <div class="section-sub" style="margin-bottom: 0;">Gerencie os clientes da Revert</div>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="openModal('modal-add-store')">+ Cadastrar lojista</button>
+        </div>
+
+        <div class="grid-2" id="stores-grid">
+          <!-- filled by JS -->
+        </div>
+      </div>
+
+      <!-- VIEW: PARTNERS -->
+      <div id="op-view-partners" style="display: none;">
+        <div class="section-title" style="margin-bottom: 4px;">Pontos Parceiros</div>
+        <div class="section-sub">Gerencie os pontos de coleta</div>
+
+        <div class="grid-3" id="partners-grid">
+          <!-- filled by JS -->
+        </div>
+      </div>
+
+      <!-- VIEW: REPORTS -->
+      <div id="op-view-reports" style="display: none;">
+        <div class="section-title" style="margin-bottom: 4px;">Relatório Semanal</div>
+        <div class="section-sub">Envie relatórios para os lojistas</div>
+
+        <div class="grid-2" id="reports-grid">
+          <!-- filled by JS -->
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════
+     PAGE: DASHBOARD
+═══════════════════════════════════ -->
+<div id="page-dashboard" class="page">
+  <div style="padding: 40px 48px 0; max-width: 1100px; margin: 0 auto; display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 28px;">
+    <div>
+      <div class="section-title">Dashboard Revert</div>
+      <div class="section-sub" style="margin-bottom: 0;">Visão geral das operações — MVP Piloto</div>
+    </div>
+    <div style="display: flex; gap: 8px;">
+      <select style="width: auto; padding: 7px 12px; font-size: 0.8rem;">
+        <option>Últimos 30 dias</option>
+        <option>Últimos 7 dias</option>
+        <option>Este mês</option>
+      </select>
+      <button class="btn btn-secondary btn-sm">Exportar CSV</button>
+    </div>
+  </div>
+
+  <div style="padding: 0 48px 60px; max-width: 1100px; margin: 0 auto;">
+
+    <!-- STATS -->
+    <div class="grid-4" style="margin-bottom: 24px;">
+      <div class="stat-card green">
+        <div class="stat-label">Total de devoluções</div>
+        <div class="stat-value" style="color: var(--accent);" id="stat-total">24</div>
+        <div class="stat-delta up">↑ 8 vs mês anterior</div>
+        <div class="progress-bar">
+          <div class="progress-fill" style="width: 80%; background: var(--accent);"></div>
+        </div>
+      </div>
+      <div class="stat-card purple">
+        <div class="stat-label">Reembolsado (R$)</div>
+        <div class="stat-value" style="color: var(--accent2);" id="stat-refunded">R$ 2.850</div>
+        <div class="stat-delta up">↑ 12% vs mês anterior</div>
+        <div class="progress-bar">
+          <div class="progress-fill" style="width: 65%; background: var(--accent2);"></div>
+        </div>
+      </div>
+      <div class="stat-card orange">
+        <div class="stat-label">Tempo médio</div>
+        <div class="stat-value" style="color: var(--warning);">18h</div>
+        <div class="stat-delta up">↑ Abaixo da meta (48h)</div>
+        <div class="progress-bar">
+          <div class="progress-fill" style="width: 37%; background: var(--warning);"></div>
+        </div>
+      </div>
+      <div class="stat-card pink">
+        <div class="stat-label">Receita gerada</div>
+        <div class="stat-value" style="color: var(--accent3);">R$ 600</div>
+        <div class="stat-delta">24 × R$ 25</div>
+        <div class="progress-bar">
+          <div class="progress-fill" style="width: 20%; background: var(--accent3);"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-2" style="margin-bottom: 24px;">
+      <!-- VOLUME CHART -->
+      <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
+          <div>
+            <div class="card-title">Volume por semana</div>
+            <div class="card-sub" style="margin-bottom: 0;">Devoluções processadas</div>
+          </div>
+          <span class="tag tag-green">+33%</span>
+        </div>
+        <div class="chart-bar-wrap" id="weekly-chart"></div>
+      </div>
+
+      <!-- STATUS PIE-ish -->
+      <div class="card">
+        <div class="card-title" style="margin-bottom: 4px;">Status atual</div>
+        <div class="card-sub">Distribuição das devoluções</div>
+        <div id="status-bars"></div>
+      </div>
+    </div>
+
+    <div class="grid-2" style="margin-bottom: 24px;">
+      <!-- POR LOJISTA -->
+      <div class="card">
+        <div class="card-title" style="margin-bottom: 4px;">Por lojista</div>
+        <div class="card-sub">Volume e receita por cliente</div>
+        <div id="by-store-list"></div>
+      </div>
+
+      <!-- MOTIVOS -->
+      <div class="card">
+        <div class="card-title" style="margin-bottom: 4px;">Motivos de devolução</div>
+        <div class="card-sub">Top causas no período</div>
+        <div id="reasons-list"></div>
+      </div>
+    </div>
+
+    <!-- META MVP -->
+    <div class="card" style="margin-bottom: 24px; background: linear-gradient(135deg, #12121a, #1a1a2e);">
+      <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+        <div>
+          <div class="card-title" style="font-size: 1.1rem;">Meta do MVP</div>
+          <div style="font-size: 0.82rem; color: var(--muted); margin-top: 4px;">3 de 5 lojistas devem completar 1 ciclo completo · 2 de 5 com intenção de continuar pagando</div>
+        </div>
+        <span class="badge badge-processing pulse">Em andamento</span>
+      </div>
+      <div class="divider" style="margin: 16px 0;"></div>
+      <div class="grid-4">
+        <div>
+          <div style="font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px;">Ciclos completos</div>
+          <div style="font-family: 'Syne', sans-serif; font-size: 1.8rem; font-weight: 800; color: var(--accent);">2 <span style="font-size: 1rem; color: var(--muted);">/ 3</span></div>
+          <div class="progress-bar" style="margin-top: 8px;"><div class="progress-fill" style="width: 67%; background: var(--accent);"></div></div>
+        </div>
+        <div>
+          <div style="font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px;">Dispostos a pagar</div>
+          <div style="font-family: 'Syne', sans-serif; font-size: 1.8rem; font-weight: 800; color: var(--accent2);">1 <span style="font-size: 1rem; color: var(--muted);">/ 2</span></div>
+          <div class="progress-bar" style="margin-top: 8px;"><div class="progress-fill" style="width: 50%; background: var(--accent2);"></div></div>
+        </div>
+        <div>
+          <div style="font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px;">Tempo médio</div>
+          <div style="font-family: 'Syne', sans-serif; font-size: 1.8rem; font-weight: 800; color: var(--warning);">18h <span style="font-size: 1rem; color: var(--muted);">/ 48h</span></div>
+          <div class="progress-bar" style="margin-top: 8px;"><div class="progress-fill" style="width: 37%; background: var(--warning);"></div></div>
+        </div>
+        <div>
+          <div style="font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px;">Melhorias capturadas</div>
+          <div style="font-family: 'Syne', sans-serif; font-size: 1.8rem; font-weight: 800; color: var(--accent3);">3 <span style="font-size: 1rem; color: var(--muted);">/ 1</span></div>
+          <div class="progress-bar" style="margin-top: 8px;"><div class="progress-fill" style="width: 100%; background: var(--accent3);"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RECENT -->
+    <div class="card">
+      <div class="card-title" style="margin-bottom: 4px;">Últimas devoluções</div>
+      <div class="card-sub">Atividade recente na plataforma</div>
+      <div class="table-wrap" style="border: none; border-top: 1px solid var(--border); border-radius: 0; margin-top: 0;">
+        <table>
+          <thead>
+            <tr>
+              <th>Código</th>
+              <th>Lojista</th>
+              <th>Produto</th>
+              <th>Valor</th>
+              <th>Status</th>
+              <th>Tempo</th>
+            </tr>
+          </thead>
+          <tbody id="dash-recent-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════
+     PAGE: PONTO PARCEIRO
+═══════════════════════════════════ -->
+<div id="page-partner" class="page">
+  <div style="padding: 40px 48px 0; max-width: 900px; margin: 0 auto;">
+    <!-- LOGIN SELECTOR -->
+    <div id="partner-login-screen">
+      <div class="hero-tag">🏪 Portal do Ponto Parceiro</div>
+      <h1 style="font-family: 'Syne', sans-serif; font-size: clamp(1.8rem,4vw,2.8rem); font-weight: 800; letter-spacing: -0.04em; margin: 12px 0 10px;">Bem-vindo ao<br><span style="color: var(--accent);">portal de coleta</span></h1>
+      <p style="font-size: 0.95rem; color: var(--muted); margin-bottom: 36px; max-width: 480px; line-height: 1.7;">Confirme recebimentos, registre fotos dos produtos e acompanhe o histórico de coletas do seu ponto.</p>
+
+      <div style="display: flex; flex-direction: column; gap: 10px; max-width: 380px; margin-bottom: 48px;">
+        <div style="font-size: 0.78rem; font-weight: 600; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 4px;">Selecione seu ponto:</div>
+        <div class="card" style="cursor: pointer; padding: 18px 20px; display: flex; align-items: center; gap: 14px; border-color: transparent; transition: border-color 0.2s;" onclick="loginPartner('Farmácia Central')" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='transparent'">
+          <div style="font-size: 1.6rem;">💊</div>
+          <div>
+            <div style="font-weight: 600; margin-bottom: 2px;">Farmácia Central</div>
+            <div style="font-size: 0.75rem; color: var(--muted);">Rua Nove de Março, 145</div>
+          </div>
+          <div style="margin-left: auto; color: var(--muted); font-size: 0.8rem;">→</div>
+        </div>
+        <div class="card" style="cursor: pointer; padding: 18px 20px; display: flex; align-items: center; gap: 14px; border-color: transparent; transition: border-color 0.2s;" onclick="loginPartner('Mercado BomPreço')" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='transparent'">
+          <div style="font-size: 1.6rem;">🛒</div>
+          <div>
+            <div style="font-weight: 600; margin-bottom: 2px;">Mercado BomPreço</div>
+            <div style="font-size: 0.75rem; color: var(--muted);">Av. Santos Dumont, 890</div>
+          </div>
+          <div style="margin-left: auto; color: var(--muted); font-size: 0.8rem;">→</div>
+        </div>
+        <div class="card" style="cursor: pointer; padding: 18px 20px; display: flex; align-items: center; gap: 14px; border-color: transparent; transition: border-color 0.2s;" onclick="loginPartner('Drogaria NovaMed')" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='transparent'">
+          <div style="font-size: 1.6rem;">💊</div>
+          <div>
+            <div style="font-weight: 600; margin-bottom: 2px;">Drogaria NovaMed</div>
+            <div style="font-size: 0.75rem; color: var(--muted);">R. Min. Calógeras, 22</div>
+          </div>
+          <div style="margin-left: auto; color: var(--muted); font-size: 0.8rem;">→</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PARTNER DASHBOARD (shown after login) -->
+    <div id="partner-dashboard" style="display: none;" class="fade-in">
+
+      <!-- HEADER -->
+      <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 32px;">
+        <div style="display: flex; align-items: center; gap: 14px;">
+          <div style="font-size: 2rem;" id="partner-icon">💊</div>
+          <div>
+            <div style="font-family: 'Syne', sans-serif; font-size: 1.2rem; font-weight: 700;" id="partner-name-display">Farmácia Central</div>
+            <div style="font-size: 0.78rem; color: var(--muted);" id="partner-addr-display">Rua Nove de Março, 145</div>
+          </div>
+        </div>
+        <div style="display: flex; gap: 8px; align-items: center;">
+          <span class="badge badge-collected pulse">Aberto para coleta</span>
+          <button class="btn btn-ghost btn-sm" onclick="logoutPartner()">Trocar ponto</button>
+        </div>
+      </div>
+
+      <!-- STATS RÁPIDAS -->
+      <div class="grid-3" style="margin-bottom: 28px;">
+        <div class="stat-card orange">
+          <div class="stat-label">Aguardando hoje</div>
+          <div class="stat-value" style="color: var(--warning);" id="partner-stat-waiting">2</div>
+          <div class="stat-delta">Produtos a receber</div>
+        </div>
+        <div class="stat-card green">
+          <div class="stat-label">Confirmados (mês)</div>
+          <div class="stat-value" style="color: var(--accent);" id="partner-stat-done">14</div>
+          <div class="stat-delta up">↑ Bom desempenho</div>
+        </div>
+        <div class="stat-card purple">
+          <div class="stat-label">Fotos enviadas</div>
+          <div class="stat-value" style="color: var(--accent2);" id="partner-stat-photos">14</div>
+          <div class="stat-delta">100% de conformidade</div>
+        </div>
+      </div>
+
+      <!-- TABS -->
+      <div class="inner-tabs" style="margin-bottom: 24px;">
+        <button class="inner-tab active" onclick="setPartnerTab('receive', this)">📥 Receber produto</button>
+        <button class="inner-tab" onclick="setPartnerTab('pending', this)">⏳ Aguardando</button>
+        <button class="inner-tab" onclick="setPartnerTab('history', this)">📋 Histórico</button>
+      </div>
+
+      <!-- TAB: RECEBER PRODUTO -->
+      <div id="partner-tab-receive">
+        <div class="card" style="max-width: 580px; margin-bottom: 20px;">
+          <div class="card-title">Confirmar recebimento</div>
+          <div class="card-sub">O consumidor apresentou o produto? Insira o código e registre a foto.</div>
+
+          <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+            <input type="text" id="partner-code-input" placeholder="Código da devolução (ex: RVT-AB12C)" style="font-family: monospace; letter-spacing: 0.05em; text-transform: uppercase;">
+            <button class="btn btn-secondary" style="flex-shrink:0;" onclick="lookupCode()">Buscar</button>
+          </div>
+
+          <!-- Result after lookup -->
+          <div id="partner-lookup-result" style="display:none;"></div>
+        </div>
+
+        <!-- QUICK RECEIVE: devoluções pendentes neste ponto -->
+        <div class="section-title" style="font-size: 1rem; margin-bottom: 4px;">Devoluções aguardadas neste ponto</div>
+        <div class="section-sub">Consumidores que escolheram este ponto para entrega</div>
+        <div id="partner-awaiting-list" style="display: flex; flex-direction: column; gap: 10px;"></div>
+      </div>
+
+      <!-- TAB: PENDING -->
+      <div id="partner-tab-pending" style="display:none;">
+        <div class="section-title" style="font-size: 1rem; margin-bottom: 4px;">Aguardando envio de foto</div>
+        <div class="section-sub">Produtos recebidos que ainda precisam de registro fotográfico</div>
+        <div id="partner-pending-list" style="display: flex; flex-direction: column; gap: 10px;"></div>
+      </div>
+
+      <!-- TAB: HISTORY -->
+      <div id="partner-tab-history" style="display:none;">
+        <div class="section-title" style="font-size: 1rem; margin-bottom: 4px;">Histórico de coletas</div>
+        <div class="section-sub">Todos os produtos processados neste ponto</div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Código</th>
+                <th>Produto</th>
+                <th>Lojista</th>
+                <th>Foto</th>
+                <th>Data</th>
+                <th>Status Revert</th>
+              </tr>
+            </thead>
+            <tbody id="partner-history-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: PHOTO UPLOAD (PARTNER) -->
+<div class="modal-overlay" id="modal-photo-upload">
+  <div class="modal" style="max-width: 560px;">
+    <button class="modal-close" onclick="closeModal('modal-photo-upload')">✕</button>
+    <div id="photo-upload-content">
+      <div class="modal-title">Registrar produto</div>
+      <div class="modal-sub" id="photo-upload-sub">Código: RVT-XXXXX</div>
+
+      <!-- Product info -->
+      <div id="photo-product-info" style="background: var(--surface2); border-radius: 8px; padding: 14px 16px; margin-bottom: 20px; border: 1px solid var(--border);"></div>
+
+      <!-- Photo upload area -->
+      <div class="form-group">
+        <label>Foto do produto</label>
+        <div id="photo-drop-area" class="photo-drop" onclick="document.getElementById('photo-file-input').click()" style="position: relative;">
+          <div id="photo-preview" style="display:none; position: relative;">
+            <img id="photo-preview-img" style="max-width: 100%; max-height: 200px; border-radius: 6px; object-fit: cover;" src="" alt="">
+            <div style="margin-top: 10px; font-size: 0.8rem; color: var(--accent);">✓ Foto selecionada</div>
+          </div>
+          <div id="photo-placeholder">
+            <div class="photo-drop-icon">📸</div>
+            <div style="font-size: 0.85rem; color: var(--muted); margin-bottom: 6px;">Toque para fotografar ou escolher arquivo</div>
+            <div style="font-size: 0.72rem; color: var(--muted);">JPG, PNG — máx 10 MB</div>
+          </div>
+          <input type="file" id="photo-file-input" accept="image/*" capture="environment" style="display:none;" onchange="handlePhotoSelect(event)">
+        </div>
+      </div>
+
+      <!-- Condition selector -->
+      <div class="form-group">
+        <label>Condição do produto ao receber</label>
+        <select id="photo-condition">
+          <option value="good">Bom estado — sem danos visíveis</option>
+          <option value="damaged">Danificado — registrar na foto</option>
+          <option value="incomplete">Incompleto — faltam itens/embalagem</option>
+          <option value="refused">Recusar recebimento</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Observações (opcional)</label>
+        <textarea id="photo-notes" placeholder="Ex: embalagem rasgada, produto sem etiqueta, consumidor sem código..."></textarea>
+      </div>
+
+      <div class="notice" style="margin-bottom: 20px;">
+        <span class="notice-icon">📌</span>
+        <div style="font-size: 0.8rem;">Fotografe o produto <strong style="color: var(--text);">ao lado do código impresso ou exibido no celular</strong> do consumidor para validação.</div>
+      </div>
+
+      <div style="display: flex; gap: 10px;">
+        <button class="btn btn-ghost" style="flex: 1;" onclick="closeModal('modal-photo-upload')">Cancelar</button>
+        <button class="btn btn-primary" style="flex: 2;" onclick="submitPhoto()">📤 Enviar registro</button>
+      </div>
+    </div>
+
+    <!-- SUCCESS -->
+    <div id="photo-upload-success" style="display:none;">
+      <div class="success-screen">
+        <div class="success-icon" style="background: rgba(123,92,255,0.1); border-color: var(--accent2);">📸</div>
+        <div style="font-family: 'Syne', sans-serif; font-size: 1.2rem; font-weight: 700; margin-bottom: 8px;">Registro enviado!</div>
+        <div style="font-size: 0.85rem; color: var(--muted); margin-bottom: 20px;">A equipe Revert vai validar as fotos e processar o reembolso ao consumidor.</div>
+        <div class="notice" style="text-align: left;">
+          <span class="notice-icon">⏱️</span>
+          <div style="font-size: 0.8rem;">O consumidor receberá o PIX em até <strong style="color: var(--text);">48 horas úteis</strong> após validação.</div>
+        </div>
+        <button class="btn btn-secondary" style="margin-top: 20px; width: 100%;" onclick="closeModal('modal-photo-upload'); resetPhotoUpload();">Fechar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════
+     MODALS
+═══════════════════════════════════ -->
+
+<!-- MODAL: REQUEST RETURN (CLIENT) -->
+<div class="modal-overlay" id="modal-request">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modal-request')">✕</button>
+    <div id="modal-request-content">
+      <div class="modal-title">Solicitar devolução</div>
+      <div class="modal-sub">Preencha os dados do pedido que deseja devolver</div>
+
+      <div class="steps">
+        <div class="step active" id="req-step-1"><div class="step-num">1</div> <span>Dados</span></div>
+        <div class="step" id="req-step-2"><div class="step-num">2</div> <span>Motivo</span></div>
+        <div class="step" id="req-step-3"><div class="step-num">3</div> <span>Confirmar</span></div>
+      </div>
+
+      <div id="req-form-1">
+        <div class="form-group">
+          <label>Seu nome completo</label>
+          <input type="text" id="req-name" placeholder="Maria da Silva">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>CPF</label>
+            <input type="text" id="req-cpf" placeholder="000.000.000-00">
+          </div>
+          <div class="form-group">
+            <label>E-mail ou WhatsApp</label>
+            <input type="text" id="req-contact" placeholder="(47) 9 9999-0000">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Nº do pedido (lojista)</label>
+            <input type="text" id="req-order" placeholder="PED-00123">
+          </div>
+          <div class="form-group">
+            <label>Lojista</label>
+            <select id="req-store">
+              <option value="">Selecione...</option>
+              <option>ModaFit Joinville</option>
+              <option>TechShop SC</option>
+              <option>CasaBella</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn btn-primary" style="width: 100%; margin-top: 4px;" onclick="reqStep(2)">Próximo →</button>
+      </div>
+
+      <div id="req-form-2" style="display: none;">
+        <div class="form-group">
+          <label>Motivo da devolução</label>
+          <select id="req-reason">
+            <option>Produto com defeito</option>
+            <option>Produto diferente do anunciado</option>
+            <option>Tamanho/cor errado</option>
+            <option>Arrependimento de compra</option>
+            <option>Produto danificado na entrega</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Descrição (opcional)</label>
+          <textarea id="req-desc" placeholder="Descreva o problema com mais detalhes..."></textarea>
+        </div>
+        <div class="form-group">
+          <label>Chave PIX para reembolso</label>
+          <input type="text" id="req-pix" placeholder="CPF, e-mail ou telefone">
+        </div>
+        <div class="form-group">
+          <label>Ponto parceiro preferido</label>
+          <select id="req-point">
+            <option>Farmácia Central — Rua Nove de Março</option>
+            <option>Mercado BomPreço — Av. Santos Dumont</option>
+            <option>Drogaria NovaMed — R. Min. Calógeras</option>
+          </select>
+        </div>
+        <div style="display: flex; gap: 10px; margin-top: 4px;">
+          <button class="btn btn-ghost" style="flex: 1;" onclick="reqStep(1)">← Voltar</button>
+          <button class="btn btn-primary" style="flex: 2;" onclick="submitRequest()">Confirmar solicitação</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="modal-request-success" style="display: none;">
+      <div class="success-screen">
+        <div class="success-icon">✓</div>
+        <div style="font-family: 'Syne', sans-serif; font-size: 1.2rem; font-weight: 700; margin-bottom: 8px;">Devolução solicitada!</div>
+        <div style="font-size: 0.85rem; color: var(--muted); margin-bottom: 16px;">Seu código de devolução:</div>
+        <div class="success-code" id="generated-code">RVT-AB12C</div>
+        <div style="font-size: 0.8rem; color: var(--muted); margin-bottom: 24px;">Apresente este código no ponto parceiro escolhido. Você também receberá por WhatsApp.</div>
+        <div class="notice">
+          <span class="notice-icon">📍</span>
+          <div><strong style="color: var(--text);">Próximo passo:</strong> Leve o produto (sem reembalar) ao ponto selecionado. O atendente vai fotografar e confirmar.</div>
+        </div>
+        <button class="btn btn-secondary" style="margin-top: 20px; width: 100%;" onclick="closeModal('modal-request')">Fechar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: ADD RETURN (OPERATOR) -->
+<div class="modal-overlay" id="modal-add-return">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modal-add-return')">✕</button>
+    <div class="modal-title">Registrar devolução manual</div>
+    <div class="modal-sub">Devolução recebida via WhatsApp pelo lojista</div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Lojista</label>
+        <select>
+          <option>ModaFit Joinville</option>
+          <option>TechShop SC</option>
+          <option>CasaBella</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Nº do pedido</label>
+        <input type="text" placeholder="PED-00123">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Nome do consumidor</label>
+        <input type="text" placeholder="João Silva">
+      </div>
+      <div class="form-group">
+        <label>Valor do reembolso (R$)</label>
+        <input type="number" placeholder="150.00">
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Produto</label>
+      <input type="text" placeholder="Camiseta Azul M">
+    </div>
+    <div class="form-group">
+      <label>Motivo</label>
+      <select>
+        <option>Produto com defeito</option>
+        <option>Tamanho errado</option>
+        <option>Produto diferente do anunciado</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Chave PIX do consumidor</label>
+      <input type="text" placeholder="CPF ou e-mail">
+    </div>
+    <button class="btn btn-primary" style="width: 100%; margin-top: 4px;" onclick="addReturn(); closeModal('modal-add-return');">Gerar código e registrar</button>
+  </div>
+</div>
+
+<!-- MODAL: ADD STORE -->
+<div class="modal-overlay" id="modal-add-store">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modal-add-store')">✕</button>
+    <div class="modal-title">Cadastrar lojista</div>
+    <div class="modal-sub">Adicione um novo cliente ao MVP</div>
+
+    <div class="form-group">
+      <label>Nome da loja</label>
+      <input type="text" placeholder="ModaFit Joinville">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>CNPJ</label>
+        <input type="text" placeholder="00.000.000/0001-00">
+      </div>
+      <div class="form-group">
+        <label>Segmento</label>
+        <select>
+          <option>Moda</option>
+          <option>Eletrônicos</option>
+          <option>Casa e Decoração</option>
+          <option>Esportes</option>
+          <option>Outro</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Contato (WhatsApp)</label>
+        <input type="text" placeholder="(47) 9 9999-0000">
+      </div>
+      <div class="form-group">
+        <label>E-mail</label>
+        <input type="email" placeholder="contato@loja.com.br">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Prazo de devolução (dias)</label>
+        <input type="number" placeholder="30">
+      </div>
+      <div class="form-group">
+        <label>Faturamento mensal</label>
+        <select>
+          <option>R$ 50k – R$ 100k</option>
+          <option>R$ 100k – R$ 250k</option>
+          <option>R$ 250k – R$ 500k</option>
+        </select>
+      </div>
+    </div>
+    <button class="btn btn-primary" style="width: 100%; margin-top: 4px;" onclick="addStore(); closeModal('modal-add-store');">Cadastrar lojista</button>
+  </div>
+</div>
+
+<!-- MODAL: VALIDATE PHOTO -->
+<div class="modal-overlay" id="modal-validate">
+  <div class="modal" style="max-width: 600px;">
+    <button class="modal-close" onclick="closeModal('modal-validate')">✕</button>
+    <div class="modal-title" id="validate-modal-title">Validar devolução</div>
+    <div class="modal-sub" id="validate-modal-sub"></div>
+
+    <div class="photo-drop" style="margin-bottom: 16px;">
+      <div class="photo-drop-icon">📸</div>
+      <div style="font-size: 0.85rem; color: var(--muted); margin-bottom: 8px;">Foto do produto no ponto parceiro</div>
+      <div style="font-size: 0.72rem; color: var(--muted);">[Ponto parceiro anexa imagem aqui]</div>
+    </div>
+
+    <div class="notice" style="margin-bottom: 16px;">
+      <span class="notice-icon">ℹ️</span>
+      <div style="font-size: 0.8rem;">Verifique se o produto está em condições de acordo com a política do lojista antes de aprovar.</div>
+    </div>
+
+    <div style="display: flex; gap: 10px;">
+      <button class="btn btn-danger" style="flex: 1;" onclick="validateReturn('rejected')">✕ Reprovar</button>
+      <button class="btn btn-primary" style="flex: 2;" onclick="validateReturn('approved')">✓ Aprovar e enviar PIX</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: PIX CONFIRM -->
+<div class="modal-overlay" id="modal-pix">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modal-pix')">✕</button>
+    <div class="modal-title">Enviar reembolso PIX</div>
+    <div class="modal-sub" id="pix-modal-sub"></div>
+
+    <div class="pix-display" style="margin-bottom: 20px;">
+      <div style="font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px;">Valor do reembolso</div>
+      <div class="pix-amount" id="pix-modal-amount">R$ 0,00</div>
+      <div class="pix-key" id="pix-modal-key">chave@pix.com</div>
+    </div>
+
+    <div class="form-group">
+      <label>Confirme o valor (R$)</label>
+      <input type="number" id="pix-confirm-value" placeholder="0.00">
+    </div>
+
+    <div style="display: flex; gap: 10px;">
+      <button class="btn btn-ghost" style="flex: 1;" onclick="closeModal('modal-pix')">Cancelar</button>
+      <button class="btn btn-primary" style="flex: 2;" onclick="confirmPix()">⚡ Confirmar PIX</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════
+//  STATE
+// ═══════════════════════════════════
+const state = {
+  returns: [
+    { code: 'RVT-AB12C', name: 'Carlos Mendes', store: 'ModaFit Joinville', product: 'Camiseta Polo M', value: 89.90, status: 'pending', date: '2025-06-10', pix: 'carlos@email.com', reason: 'Tamanho errado' },
+    { code: 'RVT-DE34F', name: 'Ana Souza', store: 'TechShop SC', product: 'Carregador USB-C', value: 149.00, status: 'collected', date: '2025-06-09', pix: '047999990001', reason: 'Produto com defeito' },
+    { code: 'RVT-GH56I', name: 'Pedro Lima', store: 'CasaBella', product: 'Jogo de Toalhas', value: 220.00, status: 'processing', date: '2025-06-09', pix: 'pedrolima@cpf.com', reason: 'Produto diferente do anunciado' },
+    { code: 'RVT-JK78L', name: 'Marina Torres', store: 'ModaFit Joinville', product: 'Vestido Floral G', value: 175.50, status: 'refunded', date: '2025-06-08', pix: 'marina@email.com', reason: 'Arrependimento' },
+    { code: 'RVT-MN90P', name: 'Rafael Costa', store: 'TechShop SC', product: 'Mouse Sem Fio', value: 129.00, status: 'refunded', date: '2025-06-07', pix: 'rafael@cpf.com', reason: 'Produto com defeito' },
+    { code: 'RVT-QR12S', name: 'Lúcia Ferreira', store: 'CasaBella', product: 'Almofada Veludo', value: 98.00, status: 'pending', date: '2025-06-11', pix: 'lucia@email.com', reason: 'Produto diferente do anunciado' },
+  ],
+  stores: [
+    { name: 'ModaFit Joinville', segment: 'Moda', contact: '(47) 99801-2233', email: 'ops@modafit.com.br', returns: 12, revenue: 300, status: 'active', since: 'Jun 2025' },
+    { name: 'TechShop SC', segment: 'Eletrônicos', contact: '(47) 99700-1122', email: 'devolucoes@techshop.com', returns: 8, revenue: 200, status: 'active', since: 'Jun 2025' },
+    { name: 'CasaBella', segment: 'Casa e Decoração', contact: '(47) 99600-4455', email: 'suporte@casabella.com.br', returns: 4, revenue: 100, status: 'pilot', since: 'Jun 2025' },
+  ],
+  partners: [
+    { name: 'Farmácia Central', address: 'Rua Nove de Março, 145', hours: 'Seg–Sáb 08h–22h', returns: 14, status: 'active' },
+    { name: 'Mercado BomPreço', address: 'Av. Santos Dumont, 890', hours: 'Todos os dias 07h–23h', returns: 9, status: 'active' },
+    { name: 'Drogaria NovaMed', address: 'R. Min. Calógeras, 22', hours: 'Seg–Sex 08h–20h', returns: 1, status: 'limited' },
+  ]
+};
+
+// ═══════════════════════════════════
+//  NAVIGATION
+// ═══════════════════════════════════
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  event.currentTarget.classList.add('active');
+
+  if (id === 'operator') renderOperator();
+  if (id === 'dashboard') renderDashboard();
+  if (id === 'track') renderMyReturns();
+  if (id === 'partner' && currentPartner) { renderPartnerAwaiting(); renderPartnerPending(); renderPartnerHistory(); }
+}
+
+// ═══════════════════════════════════
+//  MODALS
+// ═══════════════════════════════════
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+  if (id === 'modal-request') {
+    document.getElementById('modal-request-content').style.display = 'block';
+    document.getElementById('modal-request-success').style.display = 'none';
+    reqStep(1);
+  }
+}
+
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
+});
+
+// ═══════════════════════════════════
+//  CLIENT: REQUEST FLOW
+// ═══════════════════════════════════
+function reqStep(n) {
+  document.getElementById('req-form-1').style.display = n === 1 ? 'block' : 'none';
+  document.getElementById('req-form-2').style.display = n === 2 ? 'block' : 'none';
+  ['req-step-1','req-step-2','req-step-3'].forEach((s,i) => {
+    const el = document.getElementById(s);
+    el.className = 'step';
+    if (i + 1 < n) el.classList.add('done');
+    if (i + 1 === n) el.classList.add('active');
+  });
+}
+
+function genCode() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code = 'RVT-';
+  for (let i = 0; i < 5; i++) code += chars[Math.floor(Math.random() * chars.length)];
+  return code;
+}
+
+function submitRequest() {
+  const code = genCode();
+  const store = document.getElementById('req-store').value || 'ModaFit Joinville';
+  const name = document.getElementById('req-name').value || 'Cliente';
+  const reason = document.getElementById('req-reason').value;
+  const pix = document.getElementById('req-pix').value || 'chave-pix@consumidor.com';
+
+  state.returns.unshift({
+    code, name, store,
+    product: document.getElementById('req-order').value || 'Produto',
+    value: 0,
+    status: 'pending',
+    date: new Date().toISOString().split('T')[0],
+    pix,
+    reason
+  });
+
+  document.getElementById('generated-code').textContent = code;
+  document.getElementById('modal-request-content').style.display = 'none';
+  document.getElementById('modal-request-success').style.display = 'block';
+}
+
+// ═══════════════════════════════════
+//  CLIENT: TRACK
+// ═══════════════════════════════════
+function trackOrder() {
+  const code = document.getElementById('track-input').value.trim().toUpperCase();
+  const r = state.returns.find(x => x.code === code);
+  const el = document.getElementById('track-result');
+
+  if (!r) {
+    el.style.display = 'block';
+    el.innerHTML = `<div class="card" style="border-color: var(--accent3);">
+      <div style="color: var(--danger); font-weight: 500;">Código não encontrado.</div>
+      <div style="font-size: 0.82rem; color: var(--muted); margin-top: 4px;">Verifique o código e tente novamente.</div>
+    </div>`;
+    return;
+  }
+
+  el.style.display = 'block';
+  el.innerHTML = renderTrackCard(r);
+}
+
+function renderTrackCard(r) {
+  const steps = [
+    { label: 'Solicitação recebida', done: true, meta: r.date },
+    { label: 'Aguardando entrega no ponto', done: ['collected','processing','refunded'].includes(r.status), meta: r.status !== 'pending' ? 'Produto entregue' : 'Pendente' },
+    { label: 'Registro fotográfico', done: ['processing','refunded'].includes(r.status), meta: r.status === 'processing' || r.status === 'refunded' ? 'Fotos validadas' : '—' },
+    { label: 'Validação da equipe Revert', done: r.status === 'refunded', meta: r.status === 'refunded' ? 'Aprovado' : '—' },
+    { label: 'PIX enviado', done: r.status === 'refunded', meta: r.status === 'refunded' ? `R$ ${r.value.toFixed(2).replace('.',',')}` : '—' },
+  ];
+
+  const activeStep = steps.filter(s => s.done).length;
+
+  const stepsHtml = steps.map((s, i) => `
+    <div class="timeline-item">
+      <div class="timeline-dot ${s.done ? 'done' : (i === activeStep ? 'active' : '')}">
+        ${s.done ? '✓' : i + 1}
+      </div>
+      <div class="timeline-content">
+        <div class="timeline-title" style="color: ${s.done ? 'var(--text)' : 'var(--muted)'}">${s.label}</div>
+        <div class="timeline-meta">${s.meta}</div>
+      </div>
+    </div>
+  `).join('');
+
+  return `<div class="card fade-in">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+      <div>
+        <div style="font-family: 'Syne', sans-serif; font-size: 1.1rem; font-weight: 700; margin-bottom: 4px;">${r.product}</div>
+        <div style="font-size: 0.82rem; color: var(--muted);">${r.store} · ${r.reason}</div>
+      </div>
+      <div style="text-align: right;">
+        <span class="badge badge-${r.status}" style="display: block; margin-bottom: 4px;">${statusLabel(r.status)}</span>
+        <div style="font-family: 'Syne', sans-serif; font-size: 1.2rem; font-weight: 700; color: var(--accent);">R$ ${r.value.toFixed(2).replace('.',',')}</div>
+      </div>
+    </div>
+    <div class="timeline">${stepsHtml}</div>
+  </div>`;
+}
+
+function renderMyReturns() {
+  const el = document.getElementById('my-returns');
+  if (state.returns.length === 0) {
+    el.innerHTML = '<div style="color: var(--muted); font-size: 0.85rem;">Nenhuma devolução encontrada.</div>';
+    return;
+  }
+  el.innerHTML = state.returns.slice(0, 5).map(r => `
+    <div class="card" style="display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; flex-wrap: wrap; gap: 10px; cursor: pointer;" onclick="document.getElementById('track-input').value='${r.code}'; trackOrder();">
+      <div>
+        <div style="font-weight: 500; font-size: 0.9rem; margin-bottom: 2px;">${r.product}</div>
+        <div style="font-size: 0.78rem; color: var(--muted);">${r.store} · <span class="code-cell">${r.code}</span></div>
+      </div>
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <span class="badge badge-${r.status}">${statusLabel(r.status)}</span>
+        <span style="font-size: 0.8rem; color: var(--muted);">→</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ═══════════════════════════════════
+//  OPERATOR
+// ═══════════════════════════════════
+let currentOpView = 'returns';
+let currentValidateCode = null;
+let currentPixCode = null;
+let returnFilter = 'all';
+
+function setOpView(view) {
+  document.querySelectorAll('[id^="op-view-"]').forEach(v => v.style.display = 'none');
+  document.getElementById('op-view-' + view).style.display = 'block';
+  document.querySelectorAll('.sidebar-item').forEach(s => s.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+  currentOpView = view;
+
+  if (view === 'validate') renderValidateList();
+  if (view === 'pix') renderPixList();
+  if (view === 'stores') renderStores();
+  if (view === 'partners') renderPartners();
+  if (view === 'reports') renderReports();
+  if (view === 'returns') renderReturnsTable();
+}
+
+function renderOperator() {
+  renderReturnsTable();
+}
+
+function statusLabel(s) {
+  return { pending: 'Pendente', collected: 'Coletada', processing: 'Validando', refunded: 'Reembolsada', rejected: 'Reprovada' }[s] || s;
+}
+
+function renderReturnsTable(filter) {
+  if (filter) returnFilter = filter;
+  const body = document.getElementById('returns-table-body');
+  const data = state.returns.filter(r => returnFilter === 'all' || r.status === returnFilter);
+
+  body.innerHTML = data.map(r => `
+    <tr>
+      <td><span class="code-cell">${r.code}</span></td>
+      <td>${r.name}</td>
+      <td><span class="tag tag-purple">${r.store}</span></td>
+      <td style="max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${r.product}</td>
+      <td style="font-weight: 500;">R$ ${r.value.toFixed(2).replace('.',',')}</td>
+      <td><span class="badge badge-${r.status}">${statusLabel(r.status)}</span></td>
+      <td style="color: var(--muted); font-size: 0.8rem;">${r.date}</td>
+      <td>
+        ${r.status === 'collected' ? `<button class="btn btn-sm btn-secondary" onclick="openValidate('${r.code}')">Validar</button>` : ''}
+        ${r.status === 'processing' ? `<button class="btn btn-sm btn-primary" onclick="openPix('${r.code}')">PIX</button>` : ''}
+        ${r.status === 'refunded' ? `<span style="font-size: 0.75rem; color: var(--success);">✓ Concluído</span>` : ''}
+        ${r.status === 'pending' ? `<button class="btn btn-sm btn-ghost" onclick="markCollected('${r.code}')">Marcar coleta</button>` : ''}
+      </td>
+    </tr>
+  `).join('');
+}
+
+function filterReturns(f, btn) {
+  document.querySelectorAll('.inner-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  renderReturnsTable(f);
+}
+
+function markCollected(code) {
+  const r = state.returns.find(x => x.code === code);
+  if (r) { r.status = 'collected'; renderReturnsTable(); }
+}
+
+function openValidate(code) {
+  currentValidateCode = code;
+  const r = state.returns.find(x => x.code === code);
+  document.getElementById('validate-modal-title').textContent = `Validar: ${r.code}`;
+  document.getElementById('validate-modal-sub').textContent = `${r.name} · ${r.product} · ${r.store}`;
+  openModal('modal-validate');
+}
+
+function validateReturn(result) {
+  const r = state.returns.find(x => x.code === currentValidateCode);
+  if (r) {
+    r.status = result === 'approved' ? 'processing' : 'rejected';
+  }
+  closeModal('modal-validate');
+  renderReturnsTable();
+  renderValidateList();
+}
+
+function openPix(code) {
+  currentPixCode = code;
+  const r = state.returns.find(x => x.code === code);
+  document.getElementById('pix-modal-sub').textContent = `${r.name} · ${r.product}`;
+  document.getElementById('pix-modal-amount').textContent = `R$ ${r.value.toFixed(2).replace('.',',')}`;
+  document.getElementById('pix-modal-key').textContent = r.pix;
+  document.getElementById('pix-confirm-value').value = r.value || '';
+  openModal('modal-pix');
+}
+
+function confirmPix() {
+  const r = state.returns.find(x => x.code === currentPixCode);
+  const val = parseFloat(document.getElementById('pix-confirm-value').value);
+  if (r) { r.status = 'refunded'; r.value = val || r.value; }
+  closeModal('modal-pix');
+  renderReturnsTable();
+  renderPixList();
+  renderDashboard();
+}
+
+function addReturn() {
+  const code = genCode();
+  state.returns.unshift({
+    code, name: 'Novo Cliente', store: 'ModaFit Joinville',
+    product: 'Produto Manual', value: 100, status: 'pending',
+    date: new Date().toISOString().split('T')[0],
+    pix: 'chave@pix.com', reason: 'Produto com defeito'
+  });
+  renderReturnsTable();
+}
+
+function renderValidateList() {
+  const el = document.getElementById('validate-list');
+  const pending = state.returns.filter(r => r.status === 'collected');
+  if (pending.length === 0) {
+    el.innerHTML = '<div class="notice"><span class="notice-icon">✓</span>Nenhuma foto aguardando validação.</div>';
+    return;
+  }
+  el.innerHTML = pending.map(r => `
+    <div class="card" style="margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+      <div>
+        <div style="font-weight: 500; margin-bottom: 4px;">${r.code} — ${r.product}</div>
+        <div style="font-size: 0.8rem; color: var(--muted);">${r.name} · ${r.store} · ${r.reason}</div>
+      </div>
+      <div class="photo-drop" style="padding: 12px 20px; border-radius: 8px; flex-shrink: 0;">
+        <span style="font-size: 0.75rem; color: var(--muted);">📸 Foto recebida</span>
+      </div>
+      <div style="display: flex; gap: 8px;">
+        <button class="btn btn-sm btn-danger" onclick="currentValidateCode='${r.code}'; validateReturn('rejected')">Reprovar</button>
+        <button class="btn btn-sm btn-primary" onclick="currentValidateCode='${r.code}'; validateReturn('approved')">Aprovar</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderPixList() {
+  const el = document.getElementById('pix-list');
+  const pending = state.returns.filter(r => r.status === 'processing');
+  if (pending.length === 0) {
+    el.innerHTML = '<div class="notice"><span class="notice-icon">✓</span>Nenhum PIX pendente de envio.</div>';
+    return;
+  }
+  el.innerHTML = pending.map(r => `
+    <div class="card" style="margin-bottom: 12px;">
+      <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+        <div>
+          <div style="font-weight: 500; margin-bottom: 4px;">${r.code} — ${r.name}</div>
+          <div style="font-size: 0.8rem; color: var(--muted);">${r.product} · ${r.store}</div>
+          <div style="font-size: 0.78rem; color: var(--muted); margin-top: 4px;">PIX: <span style="font-family: monospace;">${r.pix}</span></div>
+        </div>
+        <div style="text-align: right;">
+          <div style="font-family: 'Syne', sans-serif; font-size: 1.4rem; font-weight: 800; color: var(--accent);">R$ ${r.value.toFixed(2).replace('.',',')}</div>
+          <button class="btn btn-sm btn-primary" style="margin-top: 8px;" onclick="openPix('${r.code}')">⚡ Enviar PIX</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderStores() {
+  const el = document.getElementById('stores-grid');
+  el.innerHTML = state.stores.map(s => `
+    <div class="card">
+      <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 16px;">
+        <div>
+          <div style="font-family: 'Syne', sans-serif; font-weight: 700; margin-bottom: 4px;">${s.name}</div>
+          <span class="tag tag-purple">${s.segment}</span>
+        </div>
+        <span class="badge ${s.status === 'active' ? 'badge-collected' : 'badge-pending'}">${s.status === 'active' ? 'Ativo' : 'Piloto'}</span>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
+        <div>
+          <div style="font-size: 0.7rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 3px;">Devoluções</div>
+          <div style="font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1.3rem;">${s.returns}</div>
+        </div>
+        <div>
+          <div style="font-size: 0.7rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 3px;">Receita</div>
+          <div style="font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1.3rem; color: var(--accent);">R$ ${s.revenue}</div>
+        </div>
+      </div>
+      <div class="divider" style="margin: 12px 0;"></div>
+      <div style="font-size: 0.78rem; color: var(--muted); line-height: 1.7;">${s.contact}<br>${s.email}<br>Cliente desde: ${s.since}</div>
+      <div style="display: flex; gap: 8px; margin-top: 14px;">
+        <button class="btn btn-sm btn-ghost" style="flex: 1;" onclick="alert('Relatório enviado por e-mail!')">Enviar relatório</button>
+        <button class="btn btn-sm btn-secondary" style="flex: 1;">Ver devoluções</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function addStore() {
+  state.stores.push({
+    name: 'Novo Lojista', segment: 'Moda',
+    contact: '(47) 99999-0000', email: 'loja@email.com',
+    returns: 0, revenue: 0, status: 'pilot', since: 'Jun 2025'
+  });
+  renderStores();
+}
+
+function renderPartners() {
+  const el = document.getElementById('partners-grid');
+  el.innerHTML = state.partners.map(p => `
+    <div class="card">
+      <div style="font-size: 1.4rem; margin-bottom: 12px;">${p.name.includes('arm') || p.name.includes('rog') ? '💊' : '🛒'}</div>
+      <div style="font-family: 'Syne', sans-serif; font-weight: 700; margin-bottom: 4px;">${p.name}</div>
+      <div style="font-size: 0.78rem; color: var(--muted); margin-bottom: 12px; line-height: 1.6;">${p.address}<br>${p.hours}</div>
+      <div style="display: flex; align-items: center; justify-content: space-between;">
+        <div>
+          <div style="font-size: 0.7rem; color: var(--muted);">Coletas</div>
+          <div style="font-family: 'Syne', sans-serif; font-weight: 700;">${p.returns}</div>
+        </div>
+        <span class="badge ${p.status === 'active' ? 'badge-collected' : 'badge-pending'}">${p.status === 'active' ? 'Ativo' : 'Limitado'}</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderReports() {
+  const el = document.getElementById('reports-grid');
+  el.innerHTML = state.stores.map(s => `
+    <div class="card">
+      <div style="font-weight: 600; margin-bottom: 4px;">${s.name}</div>
+      <div style="font-size: 0.78rem; color: var(--muted); margin-bottom: 16px;">${s.returns} devoluções · R$ ${s.revenue} recebidos</div>
+      <div style="font-size: 0.78rem; background: var(--surface2); border-radius: 6px; padding: 10px; font-family: monospace; color: var(--muted); line-height: 1.7; margin-bottom: 14px; font-size: 0.72rem;">
+        Semana: ${new Date().toLocaleDateString('pt-BR')}<br>
+        Total devoluções: ${s.returns}<br>
+        Reembolsadas: ${Math.floor(s.returns * 0.7)}<br>
+        Pendentes: ${Math.ceil(s.returns * 0.3)}<br>
+        Tempo médio: 18h<br>
+        Motivo top: Tamanho errado
+      </div>
+      <button class="btn btn-sm btn-primary" style="width: 100%;" onclick="alert('Relatório enviado para ${s.email}!')">Enviar por e-mail</button>
+    </div>
+  `).join('');
+}
+
+// ═══════════════════════════════════
+//  DASHBOARD
+// ═══════════════════════════════════
+function renderDashboard() {
+  // weekly chart
+  const weeks = ['S1','S2','S3','S4','S5','S6','S7','S8'];
+  const vals = [2,3,4,2,5,4,6,8];
+  const maxV = Math.max(...vals);
+
+  document.getElementById('weekly-chart').innerHTML = weeks.map((w, i) => `
+    <div class="chart-col">
+      <div class="chart-bar" style="height: ${(vals[i]/maxV)*100}%; background: ${i === 7 ? 'var(--accent)' : 'rgba(92,255,180,0.25)'};"></div>
+      <div class="chart-label">${w}</div>
+    </div>
+  `).join('');
+
+  // status bars
+  const total = state.returns.length;
+  const statuses = [
+    { label: 'Reembolsadas', key: 'refunded', color: 'var(--accent)' },
+    { label: 'Pendentes', key: 'pending', color: 'var(--warning)' },
+    { label: 'Validando', key: 'processing', color: 'var(--accent2)' },
+    { label: 'Coletadas', key: 'collected', color: 'var(--muted)' },
+  ];
+
+  document.getElementById('status-bars').innerHTML = statuses.map(s => {
+    const count = state.returns.filter(r => r.status === s.key).length;
+    const pct = total > 0 ? Math.round((count / total) * 100) : 0;
+    return `
+      <div style="margin-bottom: 12px;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+          <span style="font-size: 0.8rem; color: var(--muted);">${s.label}</span>
+          <span style="font-size: 0.8rem; font-weight: 600;">${count} <span style="color: var(--muted);">(${pct}%)</span></span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" style="width: ${pct}%; background: ${s.color};"></div></div>
+      </div>
+    `;
+  }).join('');
+
+  // by store
+  document.getElementById('by-store-list').innerHTML = state.stores.map(s => `
+    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 14px;">
+      <div style="flex: 1;">
+        <div style="font-size: 0.875rem; font-weight: 500; margin-bottom: 3px;">${s.name}</div>
+        <div class="progress-bar"><div class="progress-fill" style="width: ${(s.returns / 20) * 100}%; background: var(--accent2);"></div></div>
+      </div>
+      <div style="text-align: right; flex-shrink: 0;">
+        <div style="font-size: 0.875rem; font-weight: 600;">${s.returns} dev.</div>
+        <div style="font-size: 0.75rem; color: var(--accent);">R$ ${s.revenue}</div>
+      </div>
+    </div>
+  `).join('');
+
+  // reasons
+  const reasons = [
+    { label: 'Produto com defeito', count: 9, pct: 37 },
+    { label: 'Tamanho/cor errado', count: 7, pct: 29 },
+    { label: 'Diferente do anunciado', count: 5, pct: 21 },
+    { label: 'Arrependimento', count: 3, pct: 13 },
+  ];
+
+  document.getElementById('reasons-list').innerHTML = reasons.map(r => `
+    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 14px;">
+      <div style="flex: 1;">
+        <div style="font-size: 0.8rem; color: var(--muted); margin-bottom: 3px;">${r.label}</div>
+        <div class="progress-bar"><div class="progress-fill" style="width: ${r.pct}%; background: var(--accent3);"></div></div>
+      </div>
+      <div style="font-size: 0.8rem; font-weight: 600; flex-shrink: 0;">${r.pct}%</div>
+    </div>
+  `).join('');
+
+  // recent table
+  document.getElementById('dash-recent-body').innerHTML = state.returns.slice(0, 6).map(r => `
+    <tr>
+      <td><span class="code-cell">${r.code}</span></td>
+      <td><span class="tag tag-purple">${r.store}</span></td>
+      <td style="max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${r.product}</td>
+      <td style="font-weight: 500;">R$ ${r.value.toFixed(2).replace('.',',')}</td>
+      <td><span class="badge badge-${r.status}">${statusLabel(r.status)}</span></td>
+      <td style="color: var(--muted); font-size: 0.8rem;">${r.status === 'refunded' ? Math.floor(Math.random()*40+4)+'h' : '—'}</td>
+    </tr>
+  `).join('');
+}
+
+// ═══════════════════════════════════
+//  PARTNER PORTAL
+// ═══════════════════════════════════
+
+const partnerInfo = {
+  'Farmácia Central':  { icon: '💊', addr: 'Rua Nove de Março, 145' },
+  'Mercado BomPreço':  { icon: '🛒', addr: 'Av. Santos Dumont, 890' },
+  'Drogaria NovaMed':  { icon: '💊', addr: 'R. Min. Calógeras, 22' },
+};
+
+// partner-level collected items (simulate local photo log)
+const partnerLog = [
+  { code: 'RVT-JK78L', product: 'Vestido Floral G',  store: 'ModaFit Joinville', date: '2025-06-08', photoSent: true,  status: 'refunded' },
+  { code: 'RVT-MN90P', product: 'Mouse Sem Fio',      store: 'TechShop SC',       date: '2025-06-07', photoSent: true,  status: 'refunded' },
+];
+
+let currentPartner = null;
+let photoUploadCode = null;
+
+function loginPartner(name) {
+  currentPartner = name;
+  const info = partnerInfo[name];
+  document.getElementById('partner-login-screen').style.display = 'none';
+  document.getElementById('partner-dashboard').style.display = 'block';
+  document.getElementById('partner-name-display').textContent = name;
+  document.getElementById('partner-addr-display').textContent = info.addr;
+  document.getElementById('partner-icon').textContent = info.icon;
+  renderPartnerAwaiting();
+  renderPartnerPending();
+  renderPartnerHistory();
+}
+
+function logoutPartner() {
+  currentPartner = null;
+  document.getElementById('partner-login-screen').style.display = 'block';
+  document.getElementById('partner-dashboard').style.display = 'none';
+}
+
+function setPartnerTab(tab, btn) {
+  ['receive','pending','history'].forEach(t => {
+    document.getElementById('partner-tab-' + t).style.display = t === tab ? 'block' : 'none';
+  });
+  document.querySelectorAll('#partner-dashboard .inner-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// devoluções com status 'pending' aguardando neste ponto
+function renderPartnerAwaiting() {
+  const el = document.getElementById('partner-awaiting-list');
+  const list = state.returns.filter(r => r.status === 'pending');
+  document.getElementById('partner-stat-waiting').textContent = list.length;
+
+  if (list.length === 0) {
+    el.innerHTML = '<div class="notice"><span class="notice-icon">✓</span>Nenhuma devolução aguardada no momento.</div>';
+    return;
+  }
+
+  el.innerHTML = list.map(r => `
+    <div class="card fade-in" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding: 18px 20px;">
+      <div style="display: flex; gap: 14px; align-items: flex-start;">
+        <div style="width: 40px; height: 40px; border-radius: 8px; background: rgba(255,184,92,0.1); border: 1px solid rgba(255,184,92,0.25); display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0;">📦</div>
+        <div>
+          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 3px;">
+            <span class="code-cell">${r.code}</span>
+            <span class="badge badge-pending">Aguardando</span>
+          </div>
+          <div style="font-weight: 500; font-size: 0.9rem; margin-bottom: 2px;">${r.product}</div>
+          <div style="font-size: 0.75rem; color: var(--muted);">${r.name} · ${r.store} · <em>${r.reason}</em></div>
+        </div>
+      </div>
+      <div style="display: flex; gap: 8px; flex-shrink: 0;">
+        <button class="btn btn-sm btn-ghost" onclick="refuseReceive('${r.code}')">Recusar</button>
+        <button class="btn btn-sm btn-primary" onclick="openPhotoUpload('${r.code}')">📸 Receber e fotografar</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+// devoluções marcadas como collected mas sem foto ainda
+function renderPartnerPending() {
+  const el = document.getElementById('partner-pending-list');
+  const list = state.returns.filter(r => r.status === 'collected');
+
+  if (list.length === 0) {
+    el.innerHTML = '<div class="notice"><span class="notice-icon">✓</span>Nenhuma foto pendente de envio.</div>';
+    return;
+  }
+
+  el.innerHTML = list.map(r => `
+    <div class="card fade-in" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding: 18px 20px;">
+      <div>
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+          <span class="code-cell">${r.code}</span>
+          <span class="badge badge-processing">Foto pendente</span>
+        </div>
+        <div style="font-weight: 500; font-size: 0.875rem; margin-bottom: 2px;">${r.product}</div>
+        <div style="font-size: 0.75rem; color: var(--muted);">${r.store} · Recebido em ${r.date}</div>
+      </div>
+      <button class="btn btn-sm btn-primary" onclick="openPhotoUpload('${r.code}')">📸 Enviar foto</button>
+    </div>
+  `).join('');
+}
+
+function renderPartnerHistory() {
+  const body = document.getElementById('partner-history-body');
+  const allDone = [...partnerLog, ...state.returns.filter(r => r.status === 'refunded' || r.status === 'processing')];
+
+  document.getElementById('partner-stat-done').textContent = allDone.length;
+  document.getElementById('partner-stat-photos').textContent = partnerLog.filter(x => x.photoSent).length + state.returns.filter(r => r.status === 'processing' || r.status === 'refunded').length;
+
+  body.innerHTML = [...partnerLog, ...state.returns.filter(r => ['processing','refunded'].includes(r.status))].map(r => `
+    <tr>
+      <td><span class="code-cell">${r.code}</span></td>
+      <td style="font-size: 0.85rem;">${r.product}</td>
+      <td><span class="tag tag-purple">${r.store}</span></td>
+      <td style="text-align: center;">
+        ${r.photoSent !== false ? '<span style="color: var(--accent); font-size: 1rem;">📸</span>' : '<span style="color: var(--muted);">—</span>'}
+      </td>
+      <td style="color: var(--muted); font-size: 0.8rem;">${r.date}</td>
+      <td><span class="badge badge-${r.status}">${statusLabel(r.status)}</span></td>
+    </tr>
+  `).join('');
+}
+
+function lookupCode() {
+  const code = document.getElementById('partner-code-input').value.trim().toUpperCase();
+  const r = state.returns.find(x => x.code === code);
+  const el = document.getElementById('partner-lookup-result');
+
+  if (!r) {
+    el.style.display = 'block';
+    el.innerHTML = `<div class="notice" style="border-color: rgba(255,92,138,0.3); background: rgba(255,92,138,0.06);">
+      <span class="notice-icon">⚠️</span>
+      <div style="font-size: 0.82rem; color: var(--danger);">Código não encontrado. Verifique e tente novamente.</div>
+    </div>`;
+    return;
+  }
+
+  el.style.display = 'block';
+  el.innerHTML = `
+    <div class="card" style="border-color: rgba(92,255,180,0.2); background: rgba(92,255,180,0.04); margin-bottom: 0;">
+      <div style="display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+        <div>
+          <div style="font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px;">Devolução encontrada</div>
+          <div style="font-weight: 600; margin-bottom: 3px;">${r.product}</div>
+          <div style="font-size: 0.8rem; color: var(--muted);">${r.name} · ${r.store}</div>
+          <div style="font-size: 0.78rem; color: var(--muted); margin-top: 3px;">Motivo: ${r.reason}</div>
+        </div>
+        <span class="badge badge-${r.status}">${statusLabel(r.status)}</span>
+      </div>
+      <div style="margin-top: 14px;">
+        <button class="btn btn-primary btn-sm" onclick="openPhotoUpload('${r.code}')">📸 Registrar recebimento e foto</button>
+      </div>
+    </div>
+  `;
+}
+
+function openPhotoUpload(code) {
+  photoUploadCode = code;
+  const r = state.returns.find(x => x.code === code);
+  document.getElementById('photo-upload-sub').textContent = `Código: ${code} · ${r.store}`;
+  document.getElementById('photo-product-info').innerHTML = `
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+      <div>
+        <div style="font-size: 0.7rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 3px;">Produto</div>
+        <div style="font-size: 0.875rem; font-weight: 500;">${r.product}</div>
+      </div>
+      <div>
+        <div style="font-size: 0.7rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 3px;">Consumidor</div>
+        <div style="font-size: 0.875rem; font-weight: 500;">${r.name}</div>
+      </div>
+      <div>
+        <div style="font-size: 0.7rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 3px;">Lojista</div>
+        <div style="font-size: 0.875rem;"><span class="tag tag-purple">${r.store}</span></div>
+      </div>
+      <div>
+        <div style="font-size: 0.7rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 3px;">Motivo</div>
+        <div style="font-size: 0.875rem;">${r.reason}</div>
+      </div>
+    </div>
+  `;
+  document.getElementById('photo-upload-content').style.display = 'block';
+  document.getElementById('photo-upload-success').style.display = 'none';
+  resetPhotoUpload();
+  openModal('modal-photo-upload');
+}
+
+function handlePhotoSelect(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    document.getElementById('photo-preview-img').src = e.target.result;
+    document.getElementById('photo-preview').style.display = 'block';
+    document.getElementById('photo-placeholder').style.display = 'none';
+    document.getElementById('photo-drop-area').style.borderColor = 'var(--accent)';
+    document.getElementById('photo-drop-area').style.borderStyle = 'solid';
+  };
+  reader.readAsDataURL(file);
+}
+
+function submitPhoto() {
+  const r = state.returns.find(x => x.code === photoUploadCode);
+  const condition = document.getElementById('photo-condition').value;
+
+  if (condition === 'refused') {
+    if (r) r.status = 'rejected';
+    closeModal('modal-photo-upload');
+    renderPartnerAwaiting();
+    renderPartnerPending();
+    renderPartnerHistory();
+    return;
+  }
+
+  if (r) {
+    r.status = 'processing';
+    partnerLog.unshift({ code: r.code, product: r.product, store: r.store, date: new Date().toISOString().split('T')[0], photoSent: true, status: 'processing' });
+  }
+
+  document.getElementById('photo-upload-content').style.display = 'none';
+  document.getElementById('photo-upload-success').style.display = 'block';
+
+  renderPartnerAwaiting();
+  renderPartnerPending();
+  renderPartnerHistory();
+  renderReturnsTable();
+}
+
+function resetPhotoUpload() {
+  document.getElementById('photo-preview').style.display = 'none';
+  document.getElementById('photo-placeholder').style.display = 'block';
+  document.getElementById('photo-drop-area').style.borderColor = '';
+  document.getElementById('photo-drop-area').style.borderStyle = '';
+  document.getElementById('photo-file-input').value = '';
+  document.getElementById('photo-notes').value = '';
+  document.getElementById('photo-condition').value = 'good';
+}
+
+function refuseReceive(code) {
+  if (confirm('Confirma recusa do produto? O consumidor será notificado.')) {
+    const r = state.returns.find(x => x.code === code);
+    if (r) r.status = 'rejected';
+    renderPartnerAwaiting();
+    renderReturnsTable();
+  }
+}
+
+// ═══════════════════════════════════
+//  INIT
+// ═══════════════════════════════════
+renderMyReturns();
+</script>
+</body>
+</html>
